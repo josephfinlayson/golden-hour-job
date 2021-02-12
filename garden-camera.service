@@ -1,0 +1,14 @@
+[Unit]
+Description=Garden Camera
+After=network.target
+
+[Service]
+ExecStart=/home/pi/.local/bin/pipenv run app
+WorkingDirectory=/home/pi/www/golden-hour-job
+StandardOutput=inherit
+StandardError=inherit
+Restart=always
+User=pi
+
+[Install]
+WantedBy=multi-user.target
