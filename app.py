@@ -4,12 +4,12 @@ from time import sleep
 import io
 import glob
 import os
+from datetime import datetime
 
 def is_golden_hour():
     return requests.get("https://golden-hour.hobby-paas.cf/").json()['golden_hour']
 
 def process_video(images):
-    print("sending images")
     file_data = [('image', ('long.jpg', image, 'image/jpeg')) for image in images]
     response = requests.post("https://golden-hour.hobby-paas.cf/post-story", files=file_data, data=dict(text="Garden"))
     print(response)
@@ -18,6 +18,7 @@ def process_video(images):
         f.write(response.content)
 
 def create_video():
+    print("Creating video")
     img_array = []
     for file in sorted(glob.glob('*.jpg')):
         image = open(file, 'rb')
@@ -26,10 +27,17 @@ def create_video():
     process_video(img_array)
 
 def delete_files():
+
+    now = datetime.now()
+    dt_string = now.strftime("%d_%m_%Y_%H:%M:%S")
+
+    os.rename('project.mp4', dt_string + '.mp4' )
+
     for file in sorted(glob.glob('*.jpg')):
         os.remove(file)
 
 def post_to_instagram():
+    print("posting to instagram")
     with open("project.mp4", "rb") as f:
         file_data = [('image', ('project.mp4', f, 'video/mp4'))]
         response = requests.post("https://golden-hour.hobby-paas.cf/api/image", files=file_data)
@@ -46,7 +54,7 @@ def app():
             camera.start_preview()
             time.sleep(2)
             for filename in camera.capture_continuous('img{counter:03d}.jpg'):
-		print(filename)
+                print("capturing", filename)
                 if not is_golden_hour():
                     sleep(5) 
                     create_video()
