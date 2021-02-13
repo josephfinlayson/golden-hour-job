@@ -36,21 +36,24 @@ def post_to_instagram():
         print(response)
 
 def app():
+    print("starting")
     while True:
         print("checking if golden hour")
         if is_golden_hour(): 
             camera = PiCamera()
             camera.resolution = (2592, 1944)
             camera.rotation = -90
+            camera.start_preview()
+            time.sleep(2)
             for filename in camera.capture_continuous('img{counter:03d}.jpg'):
-                print('Captured %s' % filename)
                 if not is_golden_hour():
                     sleep(5) 
                     create_video()
                     post_to_instagram()
                     delete_files()
                     camera.close()
-                sleep(300)
+                    break
+                sleep(150)
         sleep(60)
 
 if __name__ == "__main__":

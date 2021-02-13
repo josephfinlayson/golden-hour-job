@@ -5,8 +5,8 @@ After=network.target
 [Service]
 ExecStart=/home/pi/.local/bin/pipenv run app
 WorkingDirectory=/home/pi/www/golden-hour-job
-StandardOutput=inherit
-StandardError=inherit
+StandardOutput=journal
+StandardError=journal
 Restart=always
 User=pi
 
