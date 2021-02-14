@@ -5,14 +5,20 @@ import io
 import glob
 import os
 from datetime import datetime
+from requests_toolbelt.multipart import encoder
 
 def is_golden_hour():
     return requests.get("https://golden-hour.hobby-paas.cf/").json()['golden_hour']
 
 def process_video(images):
-    file_data = [('image', ('long.jpg', image, 'image/jpeg')) for image in images]
-    response = requests.post("https://golden-hour.hobby-paas.cf/post-story", files=file_data, data=dict(text="Garden"))
-    print(response)
+    print("sending")
+
+    file_data = [('image', ('long.jpg', image, 'applcation/octet-stream')) for image in images]
+    file_data.append(('text', "blah"))
+    form = encoder.MultipartEncoder(file_data)
+    headers = {"Prefer": "respond-async", "Content-Type": form.content_type}
+    response = requests.post("https://golden-hour.hobby-paas.cf/post-story", headers=headers, data=form)
+
     response.raise_for_status()
     with open("project.mp4", "wb") as f:
         f.write(response.content)
@@ -22,7 +28,6 @@ def create_video():
     img_array = []
     for file in sorted(glob.glob('*.jpg')):
         image = open(file, 'rb')
-        image.seek(0)
         img_array.append(image)
     process_video(img_array)
 
@@ -52,7 +57,7 @@ def app():
             camera.resolution = (2592, 1944)
             camera.rotation = -90
             camera.start_preview()
-            time.sleep(2)
+            sleep(2)
             for filename in camera.capture_continuous('img{counter:03d}.jpg'):
                 print("capturing", filename)
                 if not is_golden_hour():

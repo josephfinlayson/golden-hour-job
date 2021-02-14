@@ -6,6 +6,7 @@ name = "pypi"
 [packages]
 requests = "*"
 picamera = "*"
+requests-toolbelt = "*"
 
 [dev-packages]
 
@@ -13,4 +14,4 @@ picamera = "*"
 python_version = "3.7"
 
 [scripts]
-app = "python app.py"
+app = "python -u app.py"
