@@ -7,6 +7,10 @@ name = "pypi"
 requests = "*"
 picamera = "*"
 requests-toolbelt = "*"
+moviepy = "*"
+opencv-python = "*"
+nptime = "*"
+pytest = "*"
 
 [dev-packages]
 
