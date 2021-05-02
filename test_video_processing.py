@@ -1,4 +1,4 @@
-from video_processing import post_story
+from video_processing import prepare_video
 
 def test_image_to_video():
     f1 = open('./sample.jpg', 'rb') 
@@ -6,5 +6,6 @@ def test_image_to_video():
     f1.seek(0)
     f2.seek(0)
 
-    response = post_story([f1, f2], "blah")
-    assert type(response.file)== str
+    response = prepare_video([f1, f2], "blah")
+    print(response)
+    assert type(response['file'])== str

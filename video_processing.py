@@ -20,18 +20,17 @@ def create_opencv_image_from_stringio(images):
         decoded = cv2.imdecode(np.frombuffer(image_bytes, np.uint8), -1)
         yield decoded
 
-def post_story(image_list, text):
+def prepare_video(image_list, text):
 
     generator = create_opencv_image_from_stringio([image_list.pop()])
     first_image = next(generator)
     height, width, layers = first_image.shape
 
     size = (width,height)
-    print(size)
+    print("resolution of images", size)
     video_path = 'project.mp4'
-    # print(image_list)
     frames_per_second = len(image_list) / 12
-
+    print("frames per second", frames_per_second)
     out = cv2.VideoWriter(video_path, cv2.VideoWriter_fourcc(*'mp4v'), frames_per_second, size)
 
     for img in create_opencv_image_from_stringio(image_list):

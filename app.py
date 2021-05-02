@@ -6,24 +6,11 @@ import glob
 import os
 from datetime import datetime
 from requests_toolbelt.multipart import encoder
-from video_processing import post_story
+from video_processing import prepare_video
 
 
 def is_golden_hour():
     return requests.get("https://golden-hour.hobby-paas.cf/").json()['golden_hour']
-
-# def process_video(images):
-#     print("sending")
-
-#     file_data = [('image', ('long.jpg', image, 'applcation/octet-stream')) for image in images]
-#     file_data.append(('text', "sunrise/sunset"))
-#     form = encoder.MultipartEncoder(file_data)
-#     headers = {"Prefer": "respond-async", "Content-Type": form.content_type}
-#     response = requests.post("https://golden-hour.hobby-paas.cf/post-story", headers=headers, data=form)
-
-#     response.raise_for_status()
-#     with open("project.mp4", "wb") as f:
-#         f.write(response.content)
 
 def images_to_bytes():
     print("Creating video")
@@ -34,12 +21,9 @@ def images_to_bytes():
     return img_array
 
 def delete_files():
-
     now = datetime.now()
     dt_string = now.strftime("%d_%m_%Y_%H:%M:%S")
-
     os.rename('project.mp4', dt_string + '.mp4' )
-
     for file in sorted(glob.glob('*.jpg')):
         os.remove(file)
 
@@ -52,11 +36,11 @@ def post_to_instagram():
 
 def render_and_post(camera):
     imgs = images_to_bytes()
-    post_story(imgs, "Sunrise/Sunset")
+    prepare_video(imgs, "Sunrise/Sunset")
     post_to_instagram()
     delete_files()
-    camera.close()
     camera.stop_preview() 
+    camera.close()
 
 def app():
     print("starting")
@@ -64,11 +48,12 @@ def app():
         print("checking if golden hour")
         if is_golden_hour(): 
             camera = PiCamera()
+            camera.rotation = 90
             camera.resolution = (2592, 1944)
             camera.start_preview()
             sleep(2)
             try:
-                for filename in camera.capture_continuous('image{counter:02d}.jpg'):
+                for filename in camera.capture_continuous('image{counter:03d}.jpg'):
                     print(filename)
                     sleep(5)
                     if not is_golden_hour():
@@ -79,4 +64,4 @@ def app():
         sleep(60)
 
 if __name__ == "__main__":
-#    app()
+   app()
