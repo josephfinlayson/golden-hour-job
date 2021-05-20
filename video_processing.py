@@ -20,7 +20,7 @@ def create_opencv_image_from_stringio(images):
         decoded = cv2.imdecode(np.frombuffer(image_bytes, np.uint8), -1)
         yield decoded
 
-def prepare_video(image_list, text):
+def orchestrate_video_creation(image_list, text):
 
     generator = create_opencv_image_from_stringio([image_list.pop()])
     first_image = next(generator)
@@ -44,7 +44,7 @@ def prepare_video(image_list, text):
             min_size=(612, 612), max_size=(1080, 1920), save_path='second.mp4')
 
     # TODO: set text a bit up from bottom
-    text = TextClip(text,fontsize=54, color='blue').set_position(("center")).set_duration(2)
+    text = TextClip(text,fontsize=54, color='blue').set_position(("center")).set_duration(4)
     clip = VideoFileClip('second.mp4', audio=False)
     final_clip = CompositeVideoClip([clip, text])
     final_clip.write_videofile(video_path, fps=frames_per_second )

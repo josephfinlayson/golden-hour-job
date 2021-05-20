@@ -6,7 +6,7 @@ import glob
 import os
 from datetime import datetime
 from requests_toolbelt.multipart import encoder
-from video_processing import prepare_video
+from video_processing import orchestrate_video_creation
 
 
 def is_golden_hour():
@@ -21,11 +21,12 @@ def images_to_bytes():
     return img_array
 
 def delete_files():
-    now = datetime.now()
-    dt_string = now.strftime("%d_%m_%Y_%H:%M:%S")
-    os.rename('project.mp4', dt_string + '.mp4' )
     for file in sorted(glob.glob('*.jpg')):
         os.remove(file)
+        
+    now = datetime.now()
+    dt_string = now.strftime("%d_%m_%Y_%H:%M:%S")
+    os.rename('project.mp4', "golden-hour-videos/" + dt_string + '.mp4' )
 
 def post_to_instagram():
     print("posting to instagram")
@@ -36,7 +37,7 @@ def post_to_instagram():
 
 def render_and_post(camera):
     imgs = images_to_bytes()
-    prepare_video(imgs, "Sunrise/Sunset")
+    orchestrate_video_creation(imgs, "Sunrise/Sunset")
     post_to_instagram()
     delete_files()
     camera.stop_preview() 
@@ -47,9 +48,10 @@ def app():
     while True:
         print("checking if golden hour")
         if is_golden_hour(): 
+            print("it's golden hour!")
             camera = PiCamera()
-            camera.rotation = 90
-            camera.resolution = (2592, 1944)
+            camera.rotation = -90
+            camera.resolution = (4056, 3040)
             camera.start_preview()
             sleep(2)
             try:
@@ -64,4 +66,5 @@ def app():
         sleep(60)
 
 if __name__ == "__main__":
-   app()
+    app()
+#   render_and_post(PiCamera())

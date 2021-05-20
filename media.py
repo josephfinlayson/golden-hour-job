@@ -194,7 +194,7 @@ def prepare_video(vid, thumbnail_frame_ts=0.0,
 
     # Ref: https://github.com/Zulko/moviepy/issues/833#issuecomment-537885162
     with VideoFileClip(temp_video_file.name) as vidclip:
-
+        print ("duration is", vidclip.duration)
         if vidclip.duration < 3 * 1.0:
             raise ValueError('Duration is too short')
 
