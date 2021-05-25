@@ -11,6 +11,7 @@ moviepy = "*"
 opencv-python = "*"
 nptime = "*"
 pytest = "*"
+imutils = "*"
 
 [dev-packages]
 

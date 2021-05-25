@@ -57,7 +57,7 @@ def app():
             try:
                 for filename in camera.capture_continuous('image{counter:03d}.jpg'):
                     print(filename)
-                    sleep(5)
+                    sleep(15)
                     if not is_golden_hour():
                         break
             finally:
@@ -67,4 +67,4 @@ def app():
 
 if __name__ == "__main__":
     app()
-#   render_and_post(PiCamera())
+ #  render_and_post(PiCamera())
