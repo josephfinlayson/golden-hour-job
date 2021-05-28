@@ -8,6 +8,26 @@ from datetime import datetime
 from requests_toolbelt.multipart import encoder
 from video_processing import orchestrate_video_creation
 
+def take(self):
+    camera = PiCamera()
+    names = []
+    start = time.time()
+    camera.start_preview()
+
+    now = datetime.now()
+    folder = self.path_maker.prepare_dir("/var/image", now)
+
+    base_name = str(time.time()).replace(".", "_")
+    evs = [-25,-10,0,10,25]
+    for ev in evs:
+        name = "slice_"+base_name + "_" + str(ev)+ ".jpg"
+        camera.capture(name)
+        sleep(0.5)
+        names.append(name)
+    camera.stop_preview()
+
+    now = datetime.now()
+    cmd = "enfuse -o /var/image/" + folder + "/" + base_name+".jpg " + " ".join(names)
 
 def is_golden_hour():
     return requests.get("https://golden-hour.hobby-paas.cf/").json()['golden_hour']
@@ -39,7 +59,6 @@ def render_and_post(camera):
     imgs = images_to_bytes()
     orchestrate_video_creation(imgs, "Sunrise/Sunset")
     post_to_instagram()
-    delete_files()
     camera.stop_preview() 
     camera.close()
 
@@ -50,21 +69,31 @@ def app():
         if is_golden_hour(): 
             print("it's golden hour!")
             camera = PiCamera()
-            camera.rotation = -90
+            camera.rotation = 0
+            camera.framerate = 30
+            # Wait for the automatic gain control to settle
+            sleep(2)
+            # Now fix the values
+            camera.shutter_speed = camera.exposure_speed
+            camera.exposure_mode = 'off'
+            g = camera.awb_gains
+            camera.awb_mode = 'off'
+            camera.awb_gains = g
+            # Finally, take several photos with the fixed settings
             camera.resolution = (4056, 3040)
             camera.start_preview()
-            sleep(2)
+            sleep(15)
             try:
-                for filename in camera.capture_continuous('image{counter:03d}.jpg'):
+                for filename in camera.capture_continuous('image{counter:03d}.jpg', resize=(1014, 760)):
                     print(filename)
-                    sleep(15)
+                    sleep(1)
                     if not is_golden_hour():
                         break
             finally:
                 render_and_post(camera)
                     
-        sleep(60)
+        sleep(240)
 
 if __name__ == "__main__":
-    app()
- #  render_and_post(PiCamera())
+   app()
+   #render_and_post(PiCamera())
