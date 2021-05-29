@@ -4,6 +4,7 @@ from time import sleep
 import io
 import glob
 import os
+from time import time
 from datetime import datetime
 from requests_toolbelt.multipart import encoder
 from video_processing import orchestrate_video_creation
@@ -32,16 +33,15 @@ def take(self):
 def is_golden_hour():
     return requests.get("https://golden-hour.hobby-paas.cf/").json()['golden_hour']
 
-def images_to_bytes():
+def get_image_list():
     print("Creating video")
     img_array = []
-    for file in sorted(glob.glob('*.jpg')):
-        image = open(file, 'rb')
-        img_array.append(image)
+    for file in sorted(glob.glob('image*.jpg')):
+        img_array.append(file)
     return img_array
 
 def delete_files():
-    for file in sorted(glob.glob('*.jpg')):
+    for file in sorted(glob.glob('image*.jpg')):
         os.remove(file)
         
     now = datetime.now()
@@ -56,44 +56,55 @@ def post_to_instagram():
         print(response)
 
 def render_and_post(camera):
-    imgs = images_to_bytes()
+    imgs = get_image_list()
     orchestrate_video_creation(imgs, "Sunrise/Sunset")
     post_to_instagram()
+    delete_files()
     camera.stop_preview() 
     camera.close()
+
+
+def filename_generator():
+    r = iter(range(1, 10000))
+    for n in r:
+        yield f'image{n:05}.jpg'
+
 
 def app():
     print("starting")
     while True:
         print("checking if golden hour")
-        if is_golden_hour(): 
+        if is_golden_hour():
             print("it's golden hour!")
             camera = PiCamera()
             camera.rotation = 0
-            camera.framerate = 30
-            # Wait for the automatic gain control to settle
-            sleep(2)
-            # Now fix the values
-            camera.shutter_speed = camera.exposure_speed
-            camera.exposure_mode = 'off'
-            g = camera.awb_gains
-            camera.awb_mode = 'off'
-            camera.awb_gains = g
-            # Finally, take several photos with the fixed settings
+
+            t_end = time() + 60 * 60
+            fn_gen = filename_generator()
             camera.resolution = (4056, 3040)
             camera.start_preview()
             sleep(15)
-            try:
-                for filename in camera.capture_continuous('image{counter:03d}.jpg', resize=(1014, 760)):
-                    print(filename)
-                    sleep(1)
-                    if not is_golden_hour():
-                        break
-            finally:
-                render_and_post(camera)
-                    
+                
+            while time() < t_end:
+                filename = next(fn_gen)
+                print(filename)
+                sleep(15)
+                camera.capture(filename, resize=(1920, 1080))
+            
+            render_and_post(camera)
+                        
         sleep(240)
 
 if __name__ == "__main__":
    app()
-   #render_and_post(PiCamera())
+#   render_and_post(PiCamera())
+
+
+# camera.framerate = 30
+# Wait for the automatic gain control to settle
+# Now fix the values
+# camera.shutter_speed = camera.exposure_speed
+# camera.exposure_mode = 'off'
+# g = camera.awb_gains
+# camera.awb_mode = 'off'
+# camera.awb_gains = g
