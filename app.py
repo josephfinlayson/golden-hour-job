@@ -1,34 +1,37 @@
+import glob
+import io
+import os
+import subprocess
+from datetime import datetime
+from subprocess import DEVNULL, STDOUT, run
+from time import sleep, time
+
 import requests
 from picamera import PiCamera
-from time import sleep
-import io
-import glob
-import os
-from time import time
-from datetime import datetime
 from requests_toolbelt.multipart import encoder
+
 from video_processing import orchestrate_video_creation
 
-def take(self):
-    camera = PiCamera()
+
+def take(image_name, camera: PiCamera):
     names = []
-    start = time.time()
-    camera.start_preview()
-
-    now = datetime.now()
-    folder = self.path_maker.prepare_dir("/var/image", now)
-
-    base_name = str(time.time()).replace(".", "_")
-    evs = [-25,-10,0,10,25]
+    evs = [-15,-10,0,10,25]
     for ev in evs:
-        name = "slice_"+base_name + "_" + str(ev)+ ".jpg"
-        camera.capture(name)
+        name = image_name  + "_slice_" + str(ev).replace('-', "minus_") + ".jpg" 
+        camera.exposure_compensation = ev
         sleep(0.5)
+        camera.capture(name, resize=(1920, 1080))
         names.append(name)
-    camera.stop_preview()
-
-    now = datetime.now()
-    cmd = "enfuse -o /var/image/" + folder + "/" + base_name+".jpg " + " ".join(names)
+    sleep(1)
+    cmd = ['/usr/bin/enfuse', "-o", image_name +".jpg", *names]
+    print("cmd: "+ " ".join(cmd))
+    run(cmd, 
+    stdout=DEVNULL,
+    stderr=STDOUT
+    )
+    for name in names: 
+        os.unlink(name)
+    
 
 def is_golden_hour():
     return requests.get("https://golden-hour.hobby-paas.cf/").json()['golden_hour']
@@ -67,29 +70,32 @@ def render_and_post(camera):
 def filename_generator():
     r = iter(range(1, 10000))
     for n in r:
-        yield f'image{n:05}.jpg'
+        yield f'image{n:05}'
 
+
+def configure_camera():
+    camera = PiCamera()
+    camera.meter_mode = "backlit"
+    camera.saturation = 20
+    camera.resolution = (4056, 3040)
+    camera.start_preview()
+    sleep (5)
+    return camera
 
 def app():
     print("starting")
     while True:
         print("checking if golden hour")
-        if is_golden_hour():
+        if is_golden_hour() or True:
             print("it's golden hour!")
-            camera = PiCamera()
-            camera.rotation = 0
-
-            t_end = time() + 60 * 60
+            camera = configure_camera()
+            t_end = time() + 60 * 80
             fn_gen = filename_generator()
-            camera.resolution = (4056, 3040)
-            camera.start_preview()
-            sleep(15)
-                
             while time() < t_end:
                 filename = next(fn_gen)
                 print(filename)
+                take(filename, camera)
                 sleep(15)
-                camera.capture(filename, resize=(1920, 1080))
             
             render_and_post(camera)
                         
