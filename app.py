@@ -15,7 +15,7 @@ from video_processing import orchestrate_video_creation
 
 def take(image_name, camera: PiCamera):
     names = []
-    evs = [-15,-10,0,10,25]
+    evs = [-25,-10,0,10,25]
     for ev in evs:
         name = image_name  + "_slice_" + str(ev).replace('-', "minus_") + ".jpg" 
         camera.exposure_compensation = ev
@@ -86,7 +86,7 @@ def app():
     print("starting")
     while True:
         print("checking if golden hour")
-        if is_golden_hour() or True:
+        if is_golden_hour():
             print("it's golden hour!")
             camera = configure_camera()
             t_end = time() + 60 * 80
