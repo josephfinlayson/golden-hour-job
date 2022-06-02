@@ -34,7 +34,7 @@ def take(image_name, camera: PiCamera):
     
 
 def is_golden_hour():
-    return requests.get("https://golden-hour.hobby-paas.cf/").json()['golden_hour']
+    return requests.get("https://golden-hour.josephfinlayson.com/").json()['golden_hour']
 
 def get_image_list():
     print("Creating video")
@@ -55,7 +55,7 @@ def post_to_instagram():
     print("posting to instagram")
     with open("project.mp4", "rb") as f:
         file_data = [('image', ('project.mp4', f, 'video/mp4'))]
-        response = requests.post("https://golden-hour.hobby-paas.cf/api/image", files=file_data)
+        response = requests.post("https://golden-hour.josephfinlayson.com/api/image", files=file_data)
         print(response)
 
 def render_and_post(camera):
