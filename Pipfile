@@ -5,13 +5,15 @@ name = "pypi"
 
 [packages]
 requests = "*"
-picamera = "*"
+##picamera = "*"
 requests-toolbelt = "*"
 moviepy = "*"
 opencv-python = "*"
 nptime = "*"
 pytest = "*"
 imutils = "*"
+pytz = "*"
+astral = "*"
 
 [dev-packages]
 
